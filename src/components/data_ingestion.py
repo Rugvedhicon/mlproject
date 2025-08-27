@@ -1,57 +1,47 @@
-import pandas as pd
-import sys
 import os
+import sys
+from src.exception import CustomException
+from src.logger import logging
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from dataclasses import dataclass
 
-# Add the src directory to the path so we can import our logger
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# 1. Configuration class for file paths
+@dataclass
+class DataIngestionConfig:
+    train_data_path: str = os.path.join('artifacts', "train.csv")
+    test_data_path: str = os.path.join('artifacts', "test.csv")
+    raw_data_path: str = os.path.join('artifacts', "data.csv")
 
-from logger import log_info, log_error, log_warning
-
+# 2. Data ingestion class
 class DataIngestion:
     def __init__(self):
-        log_info("DataIngestion component initialized")
-    
-    def load_data(self, file_path):
-        """Load data from file"""
+        self.ingestion_config = DataIngestionConfig()   # create config object
+
+    def initiate_data_ingestion(self):
+        logging.info("Entered the data ingestion method or component")
         try:
-            log_info(f"Attempting to load data from: {file_path}")
-            
-            if not os.path.exists(file_path):
-                log_error(f"File not found: {file_path}")
-                raise FileNotFoundError(f"File not found: {file_path}")
-            
-            # Load data (example with CSV)
-            data = pd.read_csv(file_path)
-            log_info(f"Successfully loaded data with shape: {data.shape}")
-            
-            return data
-            
+            df = pd.read_csv('C:/Users/Rugvedh/OneDrive/Desktop/mlproject/Data/data.csv') 
+            logging.info('read the dataset method or component')
+
+            os.makedirs(os.path.dirname(self.ingestion_config.train_data_path), exist_ok=True)
+
+            df.to_csv(self.ingestion_config.raw_data_path, index=False, header=True)
+
+            logging.info("Train test split initiated")
+            train_set, test_set = train_test_split(df, test_size=0.2, random_state=42)
+            train_set.to_csv(self.ingestion_config.train_data_path, index=False, header=True)
+            test_set.to_csv(self.ingestion_config.test_data_path, index=False, header=True)
+
+            logging.info("Ingestion of the data is completed")
+
+            return(
+                self.ingestion_config.train_data_path,
+                self.ingestion_config.test_data_path
+            )
         except Exception as e:
-            log_error(f"Error loading data: {str(e)}")
-            raise
-    
-    def validate_data(self, data):
-        """Validate loaded data"""
-        try:
-            log_info("Starting data validation")
-            
-            if data.empty:
-                log_warning("Data is empty")
-                return False
-            
-            # Check for missing values
-            missing_values = data.isnull().sum().sum()
-            if missing_values > 0:
-                log_warning(f"Found {missing_values} missing values in the dataset")
-            
-            log_info("Data validation completed successfully")
-            return True
-            
-        except Exception as e:
-            log_error(f"Error during data validation: {str(e)}")
-            return False
+            raise CustomException(e, sys)
 
 if __name__ == "__main__":
-    # Example usage
-    ingestion = DataIngestion()
-    log_info("Data ingestion example completed")
+    obj = DataIngestion()
+    obj.initiate_data_ingestion()
