@@ -17,12 +17,14 @@ os.makedirs(logs_path, exist_ok=True)
 # Full path of log file
 LOG_FILE_PATH = os.path.join(logs_path, LOG_FILE)
 
-# Configure logging
+# Configure logging to both file and console
 logging.basicConfig(
-    filename=LOG_FILE_PATH,
-    format="[%(asctime)s] %(lineno)d %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
-    filemode='a'  # Append mode
+    format="[%(asctime)s] %(lineno)d %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_FILE_PATH, mode='a'),  # File handler
+        logging.StreamHandler()  # Console handler
+    ]
 )
 
 # Create a logger instance
